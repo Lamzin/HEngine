@@ -55,16 +55,16 @@ int main()
         sql::ResultSet *res;
 
         driver = get_driver_instance();
-        con = driver->connect( "tcp://127.0.0.1:3306", "root", "" );
-        con->setSchema( "artonym" );
+        con = driver->connect( "tcp://127.0.0.1:3306", "wiki_bot", "31415" );
+        con->setSchema( "orpheus" );
 
         stmt = con->createStatement();
-        res = stmt->executeQuery( "SELECT id, post_id, hash FROM art_image_hash" );
+        res = stmt->executeQuery( "SELECT hash, track_id FROM hashes_all" );
         while ( res->next() )
         {
             Number h = res->getUInt64( "hash" );
             db.push_back( h );
-            posts[h] = res->getUInt64( "post_id" );
+            posts[h] = res->getUInt64( "track_id" );
         }
 
         delete res;
@@ -80,11 +80,18 @@ int main()
         std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
     }
 
+    std::cout << "Start building." << std::endl;
+
     HEngine_sn e( 7 );
     e.build( db );
 
+    std::cout << "Building done." << std::endl;
+
+
     while ( FCGX_Accept_r( &request ) == 0 )
     {
+        std::cout << "Have request. " << std::endl;
+
         NumTable q;
         Number hash;
         std::string query = FCGX_GetParam( "QUERY_STRING", request.envp );
